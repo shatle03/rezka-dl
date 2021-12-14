@@ -43,7 +43,7 @@ shift $((OPTIND - 1))
 [ -z $1 ] && usage
 
 die() { echo $1; exit 1; }
-get() { cmd="curl -s -L -A 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0) Gecko/20100101 Firefox/78.0' $1"; [ -z $2 ] || cmd+=" -d $2"; $cmd; }
+get() { cmd="curl --compressed -s -L -A ${UA}"; cmd+=" $1"; [ -z $2 ] || cmd+=" -d $2"; $cmd; }
 voice() { echo $page | grep -oP '(?<=<li title=").*?(?=" class="b-translator__item)' | show "Voice" | sed 's/(/\\\(/g; s/)/\\\)/g; s/\+/\\\+/g'; }
 show() { dmenu -i -l 10 -p "$1:"; }
 
