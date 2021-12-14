@@ -1,5 +1,23 @@
 #!/bin/bash -e
 
+#PROXY=http://45.124.125.93:8080
+export http_proxy=$PROXY
+export https_proxy=$PROXY
+UA='Mozilla/5.0'
+dmenu()
+{
+    COLUMNS=1
+    local mm=()
+    readarray  -t mm
+    PS3="$1 "
+    select item in "${mm[@]}"
+    do
+        echo "$item"
+        break
+    done < "$(tty 0>&2)"
+    unset PS3
+}
+
 usage() {
     cat << EOF
 Usage: $(basename $0) [options] <url>
