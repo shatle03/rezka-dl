@@ -77,8 +77,8 @@ if [ $series == 1 ]; then
     fi
 
     info=$(get $api_url "id=$id&translator_id=$voice_id&action=get_episodes")
-    season=$(echo $info | grep -oP '(?<=data-tab_id=\\").*?(?=\\")' | tac | show "Season")
-    episode=$(echo $info | grep -oP '(?<=data-season_id=\\"'$season'\\" data-episode_id=\\").*?(?=\\")' | tac | show "Episode")
+    season=$(echo $info | grep -oP '(?<=data-tab_id=\\").*?(?=\\")' | cat | show "Season")
+    episode=$(echo $info | grep -oP '(?<=data-season_id=\\"'$season'\\" data-episode_id=\\").*?(?=\\")' | cat | show "Episode")
     data=$(get $api_url "id=$id&season=$season&episode=$episode&translator_id=$voice_id&action=get_stream")
 
     filename="${season}x$episode ($name)"
@@ -96,18 +96,25 @@ elif [ $series == 0 ]; then
 fi
 
 streams=$(echo $data | grep -oP '(url|streams)":".*' | sed 's/\\\//\//g' | tr ',' '\n')
+if [ -z "$streams" ]; then
+    die 'Video not available. Possible geoblock.'
+fi
 qualities=$(echo "$streams" | sed -nr 's/^\[([0-9]+.*)\].*/\1/p')
 
 if [ $best_quality == 1 ]; then
-    quality=$(echo "$qualities" | tail -1)
+    quality=$(echo "$qualities" | grep -vi "1080" | tail -1)
 else
-    quality=$(echo "$qualities" | tac | show "Quality")
+    quality=$(echo "$qualities" | grep -vi "1080" | cat | show "Quality")
 fi
 
-stream_url=$(echo $streams | grep -oP "(?<=\[$quality\]).*?(?=:hls)")
-
 if [ $download == 1 ]; then
-    curl -# -C - -L -o "$filename.mp4" $stream_url
+    stream_url=$(echo $streams | grep -oP "(?<=\[$quality\]).*?(?=:hls)")
+    unset http_proxy
+    unset https_proxy
+    curl -# -C - -L -o "$filename.mp4" "$stream_url"
 else
-    mpv $stream_url
+    stream_url=$(echo $streams | grep -oP "(?<=\[$quality\]).*?(?= or )")
+    unset http_proxy
+    unset https_proxy
+    mpv --title="$filename" "$stream_url"
 fi
