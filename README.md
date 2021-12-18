@@ -2,7 +2,6 @@
 Download video from `hdrezka`
 
 ## Dependencies
-- `dmenu` - `dynamic menu`
 - `mpv` - `video player (-p option)`
 
 ## Usage
