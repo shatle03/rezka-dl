@@ -10,4 +10,5 @@ Download video from `hdrezka`
 Usage: rezka-dl [options] <url>
   -p  Don't download, play in player
   -q  Manually select quality
+  -b  Best quality
 ```
