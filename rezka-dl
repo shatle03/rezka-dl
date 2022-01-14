@@ -32,6 +32,7 @@ decrypt_streams()
     local i
     local j
     local decrypted=""
+    encrypted=$( echo "$encrypted" | grep -oP '(?<=":"#h).*?(?=")' | sed 's|\\||g;s|//||g' )
     str_array=($(echo "$encrypted"|tr '_' ' '))
     for i in  ${!str_array[@]}; do
         if [[ $i -gt 0 ]]; then
@@ -130,8 +131,7 @@ elif [ $series == 0 ]; then
     filename="$name ($year)"
 fi
 
-encstreams=$(echo $data | grep -oP '(url|streams)":".*' | cut -d',' -f1 | grep -oP '(?<=":"#h).*?(?=")')
-encstreams=$(echo "$encstreams"|sed 's|\\||g;s|//||g')
+encstreams=$(echo $data | grep -oP '(url|streams)":".*' | cut -d',' -f1 )
 streams=$(decrypt_streams "$encstreams" | tr ',' '\n')
 
 if [ -z "$streams" ]; then
