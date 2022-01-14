@@ -121,7 +121,7 @@ elif [ $series == 0 ]; then
         voice_name="$(voice)"
         voice_id=$(echo $page |grep -oP "(?<=title=\"$voice_name\").*?(?=>)"|grep -oP "(?<=data-translator_id=\")[[:alnum:]]*?(?=\")")
         director_id=$(echo $page |grep -oP "(?<=title=\"$voice_name\").*?(?=>)"|grep -oP "(?<=data-director=\")[[:alnum:]]*?(?=\")")
-        data=$(get $api_url "id=$id&translator_id=$voice_id&data_director=$director_id&action=get_movie")
+        data=$(get $api_url "id=$id&translator_id=$voice_id&is_director=$director_id&action=get_movie")
     else
         data=$(echo $page | grep -oP '(?<=initCDNMoviesEvents).*?(?=;)')
     fi
