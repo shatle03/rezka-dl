@@ -86,6 +86,7 @@ page=$(get $url) || die "Page loading error"
 id=$(echo $url | grep -oE '/[0-9]+-' | tr -d '/-')
 name=$(echo $page | grep -oP '(?<=h1 itemprop="name">).*?(?=<\/h1)')
 year=$(echo $url | grep -oP '(?<=-)[0-9]+(?=\.html)')
+favs=$(echo $page | grep -oP '(?<=ctrl_favs\" value=\").*?(?=")')
 
 if echo $page | grep -q 'translators-list'; then
     voices=1
@@ -112,7 +113,7 @@ if [ $series == 1 ]; then
     info=$(get $api_url "id=$id&translator_id=$voice_id&action=get_episodes")
     season=$(echo $info | grep -oP '(?<=data-tab_id=\\").*?(?=\\")' | cat | show "Season")
     episode=$(echo $info | grep -oP '(?<=data-season_id=\\"'$season'\\" data-episode_id=\\").*?(?=\\")' | cat | show "Episode")
-    data=$(get $api_url "id=$id&season=$season&episode=$episode&translator_id=$voice_id&action=get_stream")
+    data=$(get $api_url "id=$id&season=$season&episode=$episode&translator_id=$voice_id&favs=$favs&action=get_stream")
 
     filename="${season}x$episode ($name)"
 
@@ -121,7 +122,7 @@ elif [ $series == 0 ]; then
         voice_name="$(voice)"
         voice_id=$(echo $page |grep -oP "(?<=title=\"$voice_name\").*?(?=>)"|grep -oP "(?<=data-translator_id=\")[[:alnum:]]*?(?=\")")
         director_id=$(echo $page |grep -oP "(?<=title=\"$voice_name\").*?(?=>)"|grep -oP "(?<=data-director=\")[[:alnum:]]*?(?=\")")
-        data=$(get $api_url "id=$id&translator_id=$voice_id&is_director=$director_id&action=get_movie")
+        data=$(get $api_url "id=$id&translator_id=$voice_id&is_director=$director_id&favs=$favs&action=get_movie")
     else
         data=$(echo $page | grep -oP '(?<=initCDNMoviesEvents).*?(?=;)')
     fi
