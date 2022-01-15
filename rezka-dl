@@ -52,9 +52,9 @@ usage() {
     cat << EOF
 Usage: $(basename $0) [options] <url>
   -p  Don't download, play in player
-  -q  Manually select quality
+  -q  Manualy select quality
+  -v  Manualy select voice
   -b  Best quality
-  -v  Select voice
 EOF
     exit 2
 }
