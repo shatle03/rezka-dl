@@ -94,8 +94,8 @@ year=$(echo $url | grep -oP '(?<=-)[0-9]+(?=\.html)')
 favs=$(echo $page | grep -oP '(?<=ctrl_favs\" value=\").*?(?=")')
 
 if echo $page |grep -q 'b-player__restricted__block'; then
-    echo "$page" | grep -oP '(?<=b-player__restricted__block_message\">).*?(?=<)'
-    exit
+    block_msg=$(echo "$page" | grep -oP '(?<=b-player__restricted__block_message\">).*?(?=<)')
+    die "$block_msg"
 fi
 
 if echo $page | grep -q 'translators-list'; then
