@@ -93,6 +93,11 @@ name=$(echo $page | grep -oP '(?<=h1 itemprop="name">).*?(?=<\/h1)')
 year=$(echo $url | grep -oP '(?<=-)[0-9]+(?=\.html)')
 favs=$(echo $page | grep -oP '(?<=ctrl_favs\" value=\").*?(?=")')
 
+if echo $page |grep -q 'b-player__restricted__block'; then
+    echo "$page" | grep -oP '(?<=b-player__restricted__block_message\">).*?(?=<)'
+    exit
+fi
+
 if echo $page | grep -q 'translators-list'; then
     voices=1
 else
@@ -147,7 +152,7 @@ encstreams=$(echo $data | grep -oP '(url|streams)":".*' | cut -d',' -f1 )
 streams=$(decrypt_streams "$encstreams" | tr ',' '\n')
 
 if [ -z "$streams" ]; then
-    die 'Video not available. Possible geoblock.'
+    die "Stream's decryption failed. Something went wrong. Please enable debug mode."
 fi
 
 qualities=$(echo "$streams" | sed -nr 's/^\[([0-9]+.*)\].*/\1/p')
