@@ -80,8 +80,8 @@ shift $((OPTIND - 1))
 
 die() { echo $1; exit 1; }
 get() { cmd="curl --compressed -s -L -A ${UA}"; cmd+=" $1"; [ -z $2 ] || cmd+=" -d $2"; $cmd; }
-voice() { echo $page | grep -oP '(?<=class=\"b-translator__item).*?(?=</li>)'|grep -oP '(?<=">).*?(?=$)'|sed -e 's/<img title.*alt=\"\(.*\)\" style.*/"\1"/g'| show "Voice" | sed 's/(/\\\(/g; s/)/\\\)/g; s/\+/\\\+/g;s/\"/.*?/g'; }
-defvoice() { echo $page | grep -oP '(?<=class=\"b-translator__item active).*?(?=</li>)'|grep -oP '(?<=">).*?(?=$)'|sed -e 's/<img title.*alt=\"\(.*\)\" style.*/"\1"/g'|sed 's/(/\\\(/g; s/)/\\\)/g; s/\+/\\\+/g;s/\"/.*?/g'; }
+voice() { echo $page | grep -oP '(?<=class=\"b-translator__item).*?(?=</li>)'|grep -oP '(?<=">).*?(?=$)'|sed -e 's/<img title.*alt=\"\(.*\)\" style.*/"\1"/g;s/<span.*title="\(.*\)">.*/"\1"/g'| show "Voice" | sed 's/(/\\\(/g; s/)/\\\)/g; s/\+/\\\+/g;s/\"/.*?/g'; }
+defvoice() { echo $page | grep -oP '(?<=class=\"b-translator__item active).*?(?=</li>)'|grep -oP '(?<=">).*?(?=$)'|sed -e 's/<img title.*alt=\"\(.*\)\" style.*/"\1"/g;s/<span.*title="\(.*\)">.*/"\1"/g'|sed 's/(/\\\(/g; s/)/\\\)/g; s/\+/\\\+/g;s/\"/.*?/g'; }
 show() { dmenu "$1:"; }
 
 url=$1
@@ -139,7 +139,7 @@ elif [ $series == 0 ]; then
             voice_name="$(voice)"
         fi
         voice_id=$(echo $page | grep -oP "(?<=data-translator_id=\").*?(?=/li>)" | grep -oE "^[0-9]+?\".*>$voice_name<" | grep -oP "^[0-9]+")
-        director_id=$(echo $page | grep -oP "(?<=data-director=\").*?(?=</li>)" | grep -oE "^[0-9]+?\".*>$voice_name" | grep -oP "^[0-9]+")
+        director_id=$(echo $page | grep -oP "(?<=data-director=\").*?(?=/li>)" | grep -oE "^[0-9]+?\".*>$voice_name<" | grep -oP "^[0-9]+")
         data=$(get $api_url "id=$id&translator_id=$voice_id&is_director=$director_id&favs=$favs&action=get_movie")
     else
         data=$(echo $page | grep -oP '(?<=initCDNMoviesEvents).*?(?=;)')
