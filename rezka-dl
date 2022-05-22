@@ -3,12 +3,12 @@
 #PROXY=http://45.124.125.93:8080
 export http_proxy=$PROXY
 export https_proxy=$PROXY
-UA='Mozilla/5.0'
+UA="Mozilla/5.0 (Windows NT 6.1; WOW64; rv:77.0) Gecko/20190101 Firefox/77.0"
 
 trasho=('$$#!!@#!@##' '^^^!@##!!##' '####^!!##!@@' '@@@@@!##!^^^' '$$!!@$$@^!@#$$@')
 trash=()
-for t in ${trasho[@]}; do
-    trash+=( $(printf "$t"|openssl enc -a) )
+for (( t=((${#trasho[@]}-1)); t>=0; t-- )); do
+    trash+=( "//_//$(printf "${trasho[$t]}"|openssl enc -a)" )
 done
 
 dmenu()
@@ -28,23 +28,13 @@ dmenu()
 decrypt_streams()
 {
     local encrypted="$1"
-    local str_array
     local i
-    local j
     local decrypted=""
-    encrypted=$( echo "$encrypted" | grep -oP '(?<=\":\"#h).*?(?=\")' | sed 's|\\||g;s|//||g' )
-    str_array=($(echo "$encrypted"|tr '_' ' '))
-    for i in  ${!str_array[@]}; do
-        if [[ $i -gt 0 ]]; then
-            for j in ${trash[*]}; do
-                str_array[$i]=$(echo ${str_array[$i]#${j}})
-            done
-            decrypted+="${str_array[$i]}"
-        else
-            decrypted+="${str_array[$i]}"
-        fi
+    encrypted=$(echo "$encrypted" | sed -e 's|#h||;s|\\||g' )
+    for i in ${trash[*]}; do
+        encrypted=${encrypted/${i}/}
     done
-    decrypted=$(echo "$decrypted"| openssl enc -d -a -A)
+    decrypted=$(echo "$encrypted"| openssl enc -d -a -A)
     echo "$decrypted"
 }
 
@@ -79,15 +69,14 @@ shift $((OPTIND - 1))
 [ -z $1 ] && usage
 
 die() { echo $1; exit 1; }
-get() { cmd="curl --compressed -s -L -A ${UA}"; cmd+=" $1"; [ -z $2 ] || cmd+=" -d $2"; $cmd; }
-voice() { echo $page | grep -oP '(?<=class=\"b-translator__item).*?(?=</li>)'|grep -oP '(?<=">).*?(?=$)'|sed -e 's/<img title.*alt=\"\(.*\)\" style.*/"\1"/g;s/<span.*title="\(.*\)">.*/"\1"/g'| show "Voice" | sed 's/(/\\\(/g; s/)/\\\)/g; s/\+/\\\+/g;s/\"/.*?/g'; }
-defvoice() { echo $page | grep -oP '(?<=class=\"b-translator__item active).*?(?=</li>)'|grep -oP '(?<=">).*?(?=$)'|sed -e 's/<img title.*alt=\"\(.*\)\" style.*/"\1"/g;s/<span.*title="\(.*\)">.*/"\1"/g'|sed 's/(/\\\(/g; s/)/\\\)/g; s/\+/\\\+/g;s/\"/.*?/g'; }
+get() { [ -z $2 ] || dopt=" -d $2"; curl --compressed -s -L -A "${UA}" $1 $dopt; }
+voice() { echo $page | grep -oP '(?<=class=\"b-translator__item).*?(?=</li>)'|grep -oP '(?<=">).*?(?=$)'|sed -e 's/img title.*alt=\"\(.*\)\" style.*/"\1"/g;s/<span.*title="\(.*\)">.*/"\1"/g'| show "Voice" | sed 's/(/\\\(/g; s/)/\\\)/g; s/\+/\\\+/g;s/\"/.*?/g'; }
+defvoice() { echo $page | grep -oP '(?<=class=\"b-translator__item active).*?(?=</li>)'|grep -oP '(?<=">).*?(?=$)'|sed -e 's/img title.*alt=\"\(.*\)\" style.*/"\1"/g;s/<span.*title="\(.*\)">.*/"\1"/g'|sed 's/(/\\\(/g; s/)/\\\)/g; s/\+/\\\+/g;s/\"/.*?/g'; }
 show() { dmenu "$1:"; }
 
 url=$1
 api_url="$(echo $url | grep -oE '(http|https)://[^/"]+')/ajax/get_cdn_series/" || die "This is not a link"
 page=$(get $url) || die "Page loading error"
-
 id=$(echo $url | grep -oE '/[0-9]+-' | tr -d '/-')
 name=$(echo $page | grep -oP '(?<=h1 itemprop="name">).*?(?=<\/h1)')
 year=$(echo $url | grep -oP '(?<=-)[0-9]+(?=\.html)')
@@ -148,7 +137,7 @@ elif [ $series == 0 ]; then
     filename="$name ($year)"
 fi
 
-encstreams=$(echo $data | grep -oP '(url|streams)":".*' | cut -d',' -f1 )
+encstreams=$(echo $data | grep -oP '(url|streams)":".*' | cut -d',' -f1 | cut -d':' -f2 | tr -d '"' )
 streams=$(decrypt_streams "$encstreams" | tr ',' '\n')
 
 if [ -z "$streams" ]; then
